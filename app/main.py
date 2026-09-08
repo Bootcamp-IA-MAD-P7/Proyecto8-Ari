@@ -13,11 +13,13 @@ momentos distintos de la sesion (nota de la seccion 5).
 
 from __future__ import annotations
 
+import os
 import uuid
 from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI, HTTPException, UploadFile
 from fastapi.concurrency import run_in_threadpool
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 from app.database import get_db, init_db
@@ -46,6 +48,22 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Servicio de riesgo de ictus", lifespan=lifespan)
+
+# Origenes permitidos por variable de entorno (config, no codigo), lista
+# separada por comas. Mismo criterio que DATABASE_URL en app/database.py.
+_CORS_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get("CORS_ORIGINS", "http://localhost:5173").split(",")
+    if origin.strip()
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=_CORS_ORIGINS,
+    allow_credentials=False,
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type"],
+)
 
 
 def _obtener_sesion(db: Session, id_sesion: uuid.UUID) -> Sesion:
