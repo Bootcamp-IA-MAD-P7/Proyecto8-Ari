@@ -5,7 +5,7 @@ import './TopBar.css'
 function TopBar() {
   return (
     <header className="top-bar">
-      <span className="top-bar__title">Consola de sesión — riesgo de ictus</span>
+      <span className="top-bar__title">Hospital F5 · Servicio de Ictus</span>
     </header>
   )
 }

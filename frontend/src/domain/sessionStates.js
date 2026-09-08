@@ -18,8 +18,8 @@ export const SESSION_STATES = [
 export const STATE_UI = {
   abierta: {
     stepLabel: 'Abierta',
-    heading: 'Ficha recién abierta',
-    description: 'Cargá los seis datos clínicos para la clasificación tabular.',
+    heading: 'Datos clínicos del paciente',
+    description: 'Cargá los seis datos clínicos para calcular el riesgo.',
   },
   clasificada_tabular: {
     stepLabel: 'Clasificada (tabular)',

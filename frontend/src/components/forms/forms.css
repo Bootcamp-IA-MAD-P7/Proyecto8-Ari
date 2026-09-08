@@ -97,3 +97,32 @@
   cursor: pointer;
 }
 
+/* Clinical decision buttons (spec_front.md section 7, Block 4 point 4):
+   every path out of clasificada_tabular/clasificada_imagen must carry the
+   same visual weight, so the screen never leans toward one decision.
+   Deliberately NOT --color-orange: that token is brand chrome and the
+   single-path "continue" action (form submit buttons above), not a
+   clinical choice among several valid ones. */
+.decision-button-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.decision-button {
+  font: inherit;
+  font-weight: 600;
+  padding: 10px 16px;
+  border-radius: 6px;
+  border: 1.5px solid var(--text);
+  background: #fff;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.decision-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+

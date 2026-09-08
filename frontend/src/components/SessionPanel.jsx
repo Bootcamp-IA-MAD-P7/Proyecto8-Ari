@@ -7,6 +7,7 @@ import ReferralForm from './forms/ReferralForm.jsx'
 import ImageUploadForm from './forms/ImageUploadForm.jsx'
 import CloseActions from './forms/CloseActions.jsx'
 import { STATE_UI } from '../domain/sessionStates.js'
+import './forms/forms.css'
 import './SessionPanel.css'
 
 // Detail panel: reacts to `session.estado` per the section 3 map — this
@@ -53,7 +54,7 @@ function SessionPanel({
       {loading && <p className="session-panel__loading">Enviando…</p>}
 
       {session.resultado_tabular && (
-        <ResultSummary title="Resultado tabular" result={session.resultado_tabular} />
+        <ResultSummary title="Riesgo por datos clínicos" result={session.resultado_tabular} />
       )}
       {session.resultado_imagen && (
         <ResultSummary title="Resultado imagen" result={session.resultado_imagen} />
@@ -64,8 +65,13 @@ function SessionPanel({
       )}
 
       {session.estado === 'clasificada_tabular' && !showReferral && (
-        <div className="session-panel__actions">
-          <button type="button" onClick={() => setShowReferral(true)} disabled={loading}>
+        <div className="decision-button-row">
+          <button
+            type="button"
+            className="decision-button"
+            onClick={() => setShowReferral(true)}
+            disabled={loading}
+          >
             Derivar a imagen
           </button>
           <CloseActions onClose={onCloseSession} loading={loading} />

@@ -1,19 +1,52 @@
+/* Card stays neutral (white, thin border) — the verdict color lives only
+   on the badge below, never on this container (spec_front.md section 7:
+   "nunca pantalla roja, ni rojo en chrome, bordes o decoración"). */
 .result-summary {
-  background: var(--color-green-light);
+  background: #fff;
+  border: 1px solid var(--border);
   border-radius: 6px;
   padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
 }
 
 .result-summary h3 {
   font-size: 14px;
-  margin-bottom: 4px;
+  margin: 0;
 }
 
-.result-summary__risk {
-  font-weight: 600;
+/* Contained badge: a colored left bar + colored text on an otherwise
+   neutral (white) chip. Never a full-width or full-card fill. */
+.risk-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 4px;
+  border-left: 4px solid;
+  background: #fff;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.risk-badge--high {
+  color: var(--color-risk-red);
+  border-left-color: var(--color-risk-red);
+}
+
+.risk-badge--low {
+  color: var(--color-green);
+  border-left-color: var(--color-green);
 }
 
 .result-summary__detail {
   font-size: 13px;
+  color: var(--text-muted);
+}
+
+.result-summary__disclaimer {
+  font-size: 12px;
+  font-style: italic;
   color: var(--text-muted);
 }
