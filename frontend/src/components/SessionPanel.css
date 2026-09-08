@@ -8,10 +8,6 @@
   gap: 12px;
 }
 
-.session-panel--empty {
-  color: var(--text-muted);
-}
-
 .session-panel__meta {
   font-size: 13px;
   color: var(--text-muted);
@@ -25,14 +21,20 @@
   font-size: 22px;
 }
 
+.session-panel__loading {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
 .session-panel__actions {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 10px;
   margin-top: 8px;
 }
 
-.session-panel__actions button {
+.session-panel__actions > button {
   font: inherit;
   font-weight: 600;
   padding: 10px 16px;
@@ -40,6 +42,21 @@
   border: 1px solid var(--color-orange);
   background: var(--color-orange);
   color: #fff;
+  cursor: pointer;
+}
+
+.session-panel__actions > button:disabled {
   cursor: not-allowed;
   opacity: 0.55;
+}
+
+.session-panel__closed {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.session-panel__timestamps {
+  font-size: 12px;
+  color: var(--text-muted);
 }

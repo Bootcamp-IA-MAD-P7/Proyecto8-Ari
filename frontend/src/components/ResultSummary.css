@@ -1,0 +1,19 @@
+.result-summary {
+  background: var(--color-green-light);
+  border-radius: 6px;
+  padding: 12px 14px;
+}
+
+.result-summary h3 {
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.result-summary__risk {
+  font-weight: 600;
+}
+
+.result-summary__detail {
+  font-size: 13px;
+  color: var(--text-muted);
+}

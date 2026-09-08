@@ -1,44 +1,108 @@
 import { useState } from 'react'
 import Console from './components/Console.jsx'
-import { SESSION_STATES } from './domain/sessionStates.js'
-import './App.css'
+import {
+  openSession,
+  classifyTabular,
+  refer,
+  classifyImage,
+  closeSession,
+  getSession,
+  ApiError,
+} from './api/client.js'
 
-// TEMPORARY, Block 2 checkpoint only. Builds a fake SesionOut-shaped
-// object so Console's conditional render can be checked against every
-// state without the real API wiring, which lands in Block 3 (POST-then-
-// GET pattern, real id_sesion). Not real session data — never PHI.
-function buildDevPreviewSession(estado) {
-  if (estado === null) return null
-  return {
-    id_sesion: '00000000-0000-0000-0000-000000000000',
-    id_paciente: 'PREVIEW',
-    estado,
-  }
-}
-
+// App-level session state. A single active session (spec_front.md
+// section 1 scope), held in memory only — never localStorage/
+// sessionStorage, never logged (section 6: no PHI in the browser beyond
+// the running app's own memory).
 function App() {
-  const [devState, setDevState] = useState(null)
-  const session = buildDevPreviewSession(devState)
+  const [session, setSession] = useState(null)
+  const [error, setError] = useState(null)
+  const [loading, setLoading] = useState(false)
+
+  const sessionId = session?.id_sesion ?? null
+
+  async function refreshSession(id) {
+    const fresh = await getSession(id)
+    setSession(fresh)
+  }
+
+  // Regla de oro (spec_front.md section 3): la UI solo muestra las
+  // acciones que el estado permite, asi que un 409 casi no deberia
+  // pasar. Si igual llega, mostramos el mensaje Y resincronizamos con
+  // el server via GET -- nunca confiamos en la copia local.
+  async function handleFailure(err, idForResync) {
+    if (!(err instanceof ApiError)) throw err
+    setError(err)
+    if (err.status === 409 && idForResync) {
+      try {
+        await refreshSession(idForResync)
+      } catch {
+        // Resync itself failed; keep showing the original error.
+      }
+    }
+  }
+
+  // Shared POST-then-GET runner (spec_front.md section 4): every action
+  // clears the previous error, runs, and on success the GET inside
+  // `action` has already repainted `session` from the server's truth.
+  async function withRequest(action, idForResync) {
+    setLoading(true)
+    setError(null)
+    try {
+      await action()
+    } catch (err) {
+      await handleFailure(err, idForResync)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  function handleOpenSession(idPaciente) {
+    return withRequest(async () => {
+      const opened = await openSession(idPaciente)
+      await refreshSession(opened.id_sesion)
+    }, null)
+  }
+
+  function handleClassifyTabular(features) {
+    return withRequest(async () => {
+      await classifyTabular(sessionId, features)
+      await refreshSession(sessionId)
+    }, sessionId)
+  }
+
+  function handleRefer(motivo) {
+    return withRequest(async () => {
+      await refer(sessionId, motivo)
+      await refreshSession(sessionId)
+    }, sessionId)
+  }
+
+  function handleClassifyImage(file) {
+    return withRequest(async () => {
+      await classifyImage(sessionId, file)
+      await refreshSession(sessionId)
+    }, sessionId)
+  }
+
+  function handleCloseSession(decisionFinal) {
+    return withRequest(async () => {
+      await closeSession(sessionId, decisionFinal)
+      await refreshSession(sessionId)
+    }, sessionId)
+  }
 
   return (
-    <>
-      <Console session={session} />
-
-      {/* TEMPORARY dev-only state switcher — deleted once Block 3 wires
-          the real session state from the API. Lets us check the shell
-          reacts correctly to every `estado` without a live backend. */}
-      <div className="dev-state-switcher">
-        <span className="dev-state-switcher__label">Dev preview de estado:</span>
-        <button type="button" onClick={() => setDevState(null)}>
-          (sin sesión)
-        </button>
-        {SESSION_STATES.map((state) => (
-          <button key={state} type="button" onClick={() => setDevState(state)}>
-            {state}
-          </button>
-        ))}
-      </div>
-    </>
+    <Console
+      session={session}
+      error={error}
+      loading={loading}
+      onOpenSession={handleOpenSession}
+      onClassifyTabular={handleClassifyTabular}
+      onRefer={handleRefer}
+      onClassifyImage={handleClassifyImage}
+      onCloseSession={handleCloseSession}
+    />
   )
 }
 
