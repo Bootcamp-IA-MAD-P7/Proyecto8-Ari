@@ -1,0 +1,40 @@
+.stepper {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stepper__step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.stepper__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: transparent;
+  flex-shrink: 0;
+}
+
+.stepper__step--current {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.stepper__step--current .stepper__dot {
+  border-color: var(--color-amber);
+  background: var(--color-amber);
+}
+
+.stepper__step--done .stepper__dot {
+  border-color: var(--color-green);
+  background: var(--color-green);
+}

@@ -1,0 +1,45 @@
+.session-panel {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.session-panel--empty {
+  color: var(--text-muted);
+}
+
+.session-panel__meta {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.session-panel__meta code {
+  font-family: ui-monospace, Consolas, monospace;
+}
+
+.session-panel h2 {
+  font-size: 22px;
+}
+
+.session-panel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.session-panel__actions button {
+  font: inherit;
+  font-weight: 600;
+  padding: 10px 16px;
+  border-radius: 6px;
+  border: 1px solid var(--color-orange);
+  background: var(--color-orange);
+  color: #fff;
+  cursor: not-allowed;
+  opacity: 0.55;
+}
