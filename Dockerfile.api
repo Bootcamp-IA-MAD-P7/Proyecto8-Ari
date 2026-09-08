@@ -1,0 +1,55 @@
+# API image for the stroke-risk service (spec_deploy.md section 2).
+# Linux, matches the project's declared Python range (pyproject.toml
+# requires-python >=3.12,<3.14; .python-version pins 3.12).
+FROM python:3.12-slim
+
+# Official uv binaries, copied straight from Astral's distroless image —
+# no curl|sh in the build layer.
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
+
+WORKDIR /app
+
+# Force uv to use the base image's own Python 3.12 instead of downloading
+# a standalone interpreter, and use plain-copy linking (not hardlinks),
+# which is the safe default across Docker's layered filesystem.
+ENV UV_PYTHON_DOWNLOADS=never \
+    UV_LINK_MODE=copy
+
+# Dependency manifests only, first: this layer only rebuilds when
+# pyproject.toml/uv.lock actually change, not on every app/src edit.
+COPY pyproject.toml uv.lock .python-version README.md ./
+
+# --locked: fail instead of silently re-resolving if pyproject.toml and
+# uv.lock disagree. --no-dev: skip httpx/pytest, tests/ isn't even in
+# this image. This is what makes torch/torchvision resolve against the
+# pytorch-cpu index pinned in pyproject.toml's [tool.uv.sources] instead
+# of the default CUDA build — uv.lock already recorded that resolution,
+# --locked just refuses to deviate from it.
+RUN uv sync --locked --no-dev
+
+# Runtime source, copied after the dependency layer so code edits don't
+# invalidate the expensive step above. src/tabular.py and src/image.py
+# locate models/ as `Path(__file__).resolve().parent.parent / "models"`,
+# so app/, src/, and models/ must land as siblings under WORKDIR, exactly
+# as in the repo.
+COPY app/ ./app/
+COPY src/ ./src/
+COPY models/ ./models/
+
+# Makes the venv's console scripts (uvicorn) the default on PATH, and
+# puts /app itself on PYTHONPATH so `app.main`/`src.tabular` resolve
+# regardless of how the entrypoint below gets invoked.
+ENV PATH="/app/.venv/bin:${PATH}" \
+    PYTHONPATH=/app
+
+EXPOSE 8000
+
+# 0.0.0.0, not 127.0.0.1 (spec_deploy.md section 2): otherwise the API is
+# unreachable from outside the container. ${PORT:-8000} so the same image
+# serves local (no PORT set, falls back to 8000) and Render (injects
+# PORT) without changing anything. Needs shell form for the variable
+# expansion (exec/JSON-array form doesn't expand shell variables) — but
+# plain shell form leaves the shell as PID 1, which won't forward SIGTERM
+# to uvicorn, so shutdown hangs until SIGKILL. `exec` replaces the shell
+# with uvicorn itself so it becomes PID 1 and receives signals directly.
+CMD ["sh", "-c", "exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
