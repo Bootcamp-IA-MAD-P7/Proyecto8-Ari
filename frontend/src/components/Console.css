@@ -1,0 +1,27 @@
+.console {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.console__body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 24px;
+  padding: 24px;
+  max-width: 960px;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.console__master {
+  padding-top: 8px;
+}
+
+@media (max-width: 720px) {
+  .console__body {
+    grid-template-columns: 1fr;
+  }
+}

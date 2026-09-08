@@ -1,0 +1,11 @@
+.top-bar {
+  background: var(--color-orange);
+  color: #fff;
+  padding: 16px 24px;
+}
+
+.top-bar__title {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}

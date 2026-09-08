@@ -1,0 +1,128 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 360px;
+}
+
+.form label {
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.form input[type='text'],
+.form input[type='number'],
+.form input[type='file'],
+.form select,
+.form textarea {
+  font: inherit;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+}
+
+.form textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form fieldset {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin: 0;
+}
+
+.form fieldset legend {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0 4px;
+}
+
+.form fieldset label {
+  margin: 0 12px 0 4px;
+  font-weight: 400;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Deliberately distinct from --color-risk-red — see ErrorBanner.css. */
+.field-error {
+  color: #b3261e;
+  font-size: 12px;
+  margin: 0;
+}
+
+.char-counter {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0;
+  align-self: flex-end;
+}
+
+.form button[type='submit'] {
+  margin-top: 12px;
+  align-self: flex-start;
+  font: inherit;
+  font-weight: 600;
+  padding: 10px 16px;
+  border-radius: 6px;
+  border: 1px solid var(--color-orange);
+  background: var(--color-orange);
+  color: #fff;
+  cursor: pointer;
+}
+
+.form button[type='submit']:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.form__button-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.form__secondary {
+  margin-top: 12px;
+  font: inherit;
+  padding: 10px 16px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: #fff;
+  cursor: pointer;
+}
+
+/* Clinical decision buttons (spec_front.md section 7, Block 4 point 4):
+   every path out of clasificada_tabular/clasificada_imagen must carry the
+   same visual weight, so the screen never leans toward one decision.
+   Deliberately NOT --color-orange: that token is brand chrome and the
+   single-path "continue" action (form submit buttons above), not a
+   clinical choice among several valid ones. */
+.decision-button-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.decision-button {
+  font: inherit;
+  font-weight: 600;
+  padding: 10px 16px;
+  border-radius: 6px;
+  border: 1.5px solid var(--text);
+  background: #fff;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.decision-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+

@@ -1,0 +1,24 @@
+/* Brand and semantic color tokens (spec_front.md section 7).
+   Roles are fixed by the spec, not decorative choices:
+     --color-orange       brand chrome, top bar, primary action
+     --color-amber        accent, in-transit state (derivada, en curso)
+     --color-green        positive state, alta, paso hecho
+     --color-green-light  soft backgrounds, faint badges
+     --color-cream        page background
+*/
+:root {
+  --color-orange: #ff7a1a;
+  --color-amber: #ffb347;
+  --color-green: #2f7d32;
+  --color-green-light: #a8d5a2;
+  --color-cream: #f6f1e6;
+}
+
+/* Clinical red: the one semantic token outside the brand palette, on
+   purpose (section 7). Single job: flag high risk (prediction === 1).
+   Kept separate from the tokens above so it can never be reached for as
+   brand chrome by accident. AA contrast check against cream/white and
+   its actual use on the risk card are Block 4 work, not this one. */
+:root {
+  --color-risk-red: #c62828;
+}
