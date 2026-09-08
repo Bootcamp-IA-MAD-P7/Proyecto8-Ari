@@ -1,0 +1,47 @@
+# Nginx config template (spec_deploy.md section 3). The listen port and
+# proxy upstream below are placeholders, resolved by docker-entrypoint.sh
+# via envsubst before Nginx starts -- everything else here that starts
+# with $ (uri, host, remote_addr, api_upstream, ...) is a real Nginx
+# variable, left untouched on purpose (the entrypoint only substitutes
+# those two placeholder names, explicitly). Note: envsubst rewrites this
+# comment block too, same as the config below it -- it has no notion of
+# "comment", it substitutes the whole file.
+server {
+    listen ${NGINX_PORT};
+
+    # 127.0.0.11 is Docker's embedded DNS (works in compose's network and
+    # equally in any other Docker-managed network, e.g. Render). Without
+    # this, a bare `proxy_pass http://api:8000/` resolves the hostname
+    # once, when Nginx reads this config -- if "api" isn't resolvable at
+    # that exact moment (proxy started before the API container, DNS not
+    # ready yet, ...), Nginx refuses to start at all. Assigning the
+    # upstream to a variable and pairing it with `resolver` instead makes
+    # Nginx resolve it lazily, per request, so it starts either way and
+    # only a request made before the upstream exists fails (502), not the
+    # whole proxy.
+    resolver 127.0.0.11 valid=10s;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # SPA fallback: any route the front's own router owns (not a real
+    # file on disk) still serves index.html instead of an Nginx 404, so
+    # the app loads no matter which path the browser opens first.
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Reverse proxy to the API. The trailing slash on the location AND on
+    # proxy_pass both matter: together they strip the /api prefix before
+    # forwarding, so /api/sesiones reaches the backend as /sesiones --
+    # which is how the API actually names its routes, with no /api
+    # prefix of its own. Drop either trailing slash and this 404s.
+    location /api/ {
+        set $api_upstream ${API_UPSTREAM};
+        proxy_pass $api_upstream/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
