@@ -1,0 +1,58 @@
+# Local Docker deployment (spec_deploy.md sections 2-4, Part A). Three
+# services on Compose's default network, where they resolve each other
+# by service name -- "db" and "api" below are hostnames, not localhost.
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: stroke
+      POSTGRES_PASSWORD: stroke
+      POSTGRES_DB: stroke_db
+    # Named volume: this is the actual persistence criterion (spec_backend
+    # section 7 / spec_deploy section 4). Without it, every `down` wipes
+    # the sessions table along with the container.
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stroke -d stroke_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    environment:
+      # Host is "db", the compose service name -- not localhost. Inside
+      # the compose network, services resolve each other by name.
+      DATABASE_URL: postgresql+psycopg://stroke:stroke@db:5432/stroke_db
+    depends_on:
+      # app/database.py reads DATABASE_URL and connects (create_engine)
+      # at import time, and app/main.py's lifespan runs create_all on
+      # startup -- both need Postgres actually accepting connections
+      # already, not just the container started. service_healthy makes
+      # api wait for db's pg_isready healthcheck to pass first.
+      db:
+        condition: service_healthy
+    # No published port: web reaches api over the compose network only.
+    # Uncomment to hit the API directly from the host for debugging:
+    # ports:
+    #   - "8000:8000"
+
+  web:
+    build:
+      context: frontend
+      dockerfile: Dockerfile.front
+    ports:
+      - "8080:80"
+    environment:
+      # NGINX_PORT is left at its image default (80); only the upstream
+      # needs to be told the api service's name.
+      API_UPSTREAM: http://api:8000
+    depends_on:
+      - api
+
+volumes:
+  db_data:

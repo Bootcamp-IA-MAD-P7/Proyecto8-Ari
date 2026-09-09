@@ -31,14 +31,30 @@ server {
         try_files $uri $uri/ /index.html;
     }
 
-    # Reverse proxy to the API. The trailing slash on the location AND on
-    # proxy_pass both matter: together they strip the /api prefix before
-    # forwarding, so /api/sesiones reaches the backend as /sesiones --
-    # which is how the API actually names its routes, with no /api
-    # prefix of its own. Drop either trailing slash and this 404s.
+    # Reverse proxy to the API, stripping the /api prefix: /api/sesiones
+    # must reach the backend as /sesiones, since that's how the API
+    # actually names its routes (no /api prefix of its own).
+    #
+    # Normally a trailing slash on both the location and a *static*
+    # proxy_pass does that stripping automatically. It doesn't here: once
+    # proxy_pass's target is a variable (required above, for lazy DNS via
+    # `resolver`), Nginx stops doing that automatic rewrite entirely and
+    # instead sends every request to the literal path after the variable
+    # -- with a trailing "/" there, EVERY request would hit the backend's
+    # "/", regardless of what was actually requested. The explicit
+    # `rewrite ... break` below strips the prefix itself, so `proxy_pass`
+    # (with no path of its own) forwards the already-stripped $uri as-is.
+    #
+    # Order matters: `set` has to run BEFORE `rewrite ... break` -- both
+    # are rewrite-module directives that execute in the order they're
+    # written, and `break` halts that module's processing right where it
+    # is. A `set` placed after it never runs, leaving $api_upstream
+    # uninitialized (found this the hard way: Nginx logged exactly that
+    # and returned 500, "invalid URL prefix").
     location /api/ {
         set $api_upstream ${API_UPSTREAM};
-        proxy_pass $api_upstream/;
+        rewrite ^/api/(.*)$ /$1 break;
+        proxy_pass $api_upstream;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
