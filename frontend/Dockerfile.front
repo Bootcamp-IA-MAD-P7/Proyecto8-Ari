@@ -1,0 +1,45 @@
+# Front image for the stroke-risk console (spec_deploy.md section 3).
+# Two stages: build the Vite/React static bundle with Node, then serve
+# it -- and reverse-proxy /api to the backend -- with a small Nginx image.
+
+# --- Stage 1: build ---------------------------------------------------
+
+FROM node:24-alpine AS build
+WORKDIR /app
+
+# Manifests first, for layer caching: this layer only rebuilds when
+# dependencies actually change, not on every source edit.
+COPY package.json package-lock.json ./
+RUN npm ci
+
+COPY . .
+
+# VITE_API_BASE_URL is a Vite build-time env var, baked into the static
+# bundle by `vite build` -- it does not exist at container runtime.
+# Relative "/api" (not an absolute URL) works because the Nginx stage
+# below reverse-proxies /api to the real API, so the front never needs
+# to know the API's actual origin, local or on Render.
+ENV VITE_API_BASE_URL=/api
+RUN npm run build
+
+# --- Stage 2: serve -----------------------------------------------------
+
+FROM nginx:alpine
+
+COPY --from=build /app/dist /usr/share/nginx/html
+
+COPY nginx/default.conf.template /etc/nginx/templates/default.conf.template
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+
+# Local defaults (spec_deploy.md section 3): api:8000 is the compose
+# service name from Block 3, port 80 is what compose publishes from.
+# Render (Block 4) overrides both at deploy time, no rebuild needed.
+ENV API_UPSTREAM=http://api:8000 \
+    NGINX_PORT=80
+
+# Documentation only -- EXPOSE can't follow NGINX_PORT if it's overridden
+# at `docker run` time, it just reflects the local default above.
+EXPOSE 80
+
+ENTRYPOINT ["/docker-entrypoint.sh"]

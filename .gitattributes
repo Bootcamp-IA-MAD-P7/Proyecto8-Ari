@@ -1,0 +1,6 @@
+# Shell scripts must stay LF no matter what checks them out. On Windows,
+# git's core.autocrlf would otherwise rewrite docker-entrypoint.sh to
+# CRLF on the next checkout -- a CRLF shebang line breaks `exec` inside
+# the Linux container (the kernel looks for an interpreter literally
+# named "/bin/sh\r", which doesn't exist).
+*.sh text eol=lf

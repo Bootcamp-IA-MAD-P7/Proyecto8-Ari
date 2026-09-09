@@ -1,0 +1,17 @@
+# Only app/, src/, models/, and the dependency manifests reach the API
+# image (Dockerfile.api COPYs those explicitly). Everything below stays
+# out of the build context so it can never leak into the image.
+node_modules
+.venv
+.git
+frontend/
+data/
+notebooks/
+reports/
+tests/
+*.ipynb
+
+# Standard Python/tooling cruft, harmless to also exclude.
+__pycache__/
+*.pyc
+.pytest_cache/

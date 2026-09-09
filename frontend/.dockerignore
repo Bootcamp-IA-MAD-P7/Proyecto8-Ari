@@ -1,0 +1,7 @@
+# Keeps the build context to only what Dockerfile.front actually needs.
+node_modules
+dist
+dist-ssr
+.env
+.env.local
+npm-debug.log*
